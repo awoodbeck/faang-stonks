@@ -1,0 +1,9 @@
+module github.com/awoodbeck/faang-stonks
+
+go 1.16
+
+require (
+	github.com/influxdata/influxdb-client-go/v2 v2.2.3
+	github.com/spf13/cobra v1.1.3
+	github.com/spf13/viper v1.7.0
+)
