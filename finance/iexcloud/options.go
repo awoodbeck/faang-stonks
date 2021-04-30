@@ -18,7 +18,7 @@ func (f optFunc) apply(c *Client) {
 	f(c)
 }
 
-// BatchEndpoint accepts the full URL to the IEX Cloud API to use for batch
+// BatchEndpoint accepts the full URL to the IEX Cloud API to use for batchQuotes
 // requests.
 func BatchEndpoint(url string) Option {
 	return optFunc(func(c *Client) {

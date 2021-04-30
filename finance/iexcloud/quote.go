@@ -11,19 +11,21 @@ import (
 // translate an IEX Cloud JSON to the finance.Quote type.
 type quote struct {
 	Symbol    string  `json:"symbol"`
-	Price     float64 `json:"delayedPrice"`
-	Timestamp int64   `json:"delayedPriceTime"`
+	Price     float64 `json:"iexRealtimePrice"`
+	Timestamp int64   `json:"iexLastUpdated"`
 }
 
-type batch map[string]map[string]quote
+type batchQuotes map[string]map[string]quote
 
-func (b batch) MarshalQuotes() ([]finance.Quote, error) {
+// MarshalQuotes returns a slice of quotes suitable for use in the finance
+// package.
+func (b batchQuotes) MarshalQuotes() ([]finance.Quote, error) {
 	quotes := make([]finance.Quote, 0, len(b))
 
 	for symbol := range b {
 		q, ok := b[symbol]["quote"]
 		if !ok {
-			return nil, fmt.Errorf("unable to retrieve quote data for %q", symbol)
+			return nil, fmt.Errorf("'quote' key for symbol %q not found", symbol)
 		}
 		quotes = append(quotes, finance.Quote{
 			Symbol: q.Symbol,

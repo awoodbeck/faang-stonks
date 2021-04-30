@@ -1,5 +1,11 @@
 // Package influxdb provides history.Archiver and history.Provider
 // implementations that use the time series database, InfluxDB.
+//
+// Note: This stub is included as an example of how I could add InfluxDB
+// support if required in the future. Abstracting this away from the rest of
+// the code allows me to transparently swap backend implementations (e.g.,
+// SQLite for InfluxDB) as requirements and scaling needs change. For the
+// purposes of this demo, I opted to keep things simple and use SQLite.
 package influxdb
 
 import (

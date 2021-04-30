@@ -6,6 +6,8 @@
 package cmd
 
 import (
+	"log"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -26,6 +28,10 @@ func init() {
 		viper.SetEnvPrefix("stonks")
 		viper.AutomaticEnv()
 	})
+
+	if err := viper.BindPFlags(rootCmd.Flags()); err != nil {
+		log.Fatalf("binding flags to viper: %s", err)
+	}
 }
 
 func rootRun(_ *cobra.Command, _ []string) {}

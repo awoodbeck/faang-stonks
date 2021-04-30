@@ -5,6 +5,7 @@ package iexcloud
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -16,14 +17,18 @@ import (
 )
 
 const (
-	// defaultBatchEndpoint is the default batch endpoint for the IEX Cloud API.
-	defaultBatchEndpoint = "https://cloud.iexapis.com/stable/stock/market/batch"
+	// defaultBatchEndpoint is the default batchQuotes endpoint for the IEX Cloud API.
+	defaultBatchEndpoint = "https://cloud.iexapis.com/stable/stock/market/batchQuotes"
 
 	// defaultTimeout is the default duration the client waits to a response.
 	defaultTimeout = 10 * time.Second
 )
 
-var _ finance.Provider = (*Client)(nil)
+var (
+	_ finance.Provider = (*Client)(nil)
+
+	ErrInvalidToken = errors.New("invalid token")
+)
 
 type Client struct {
 	batchEndpoint string
@@ -61,7 +66,7 @@ func (c Client) GetQuotes(ctx context.Context, symbols ...string) ([]finance.Quo
 		_ = resp.Body.Close()
 	}()
 
-	b := make(batch)
+	b := make(batchQuotes)
 	err = json.NewDecoder(resp.Body).Decode(&b)
 	if err != nil {
 		return nil, fmt.Errorf("decoding response: %w", err)
@@ -72,6 +77,10 @@ func (c Client) GetQuotes(ctx context.Context, symbols ...string) ([]finance.Quo
 
 // New accepts an API endpoint and returns a pointer to a new Client object.
 func New(token string, options ...Option) (*Client, error) {
+	if token == "" {
+		return nil, ErrInvalidToken
+	}
+
 	c := &Client{
 		batchEndpoint: defaultBatchEndpoint,
 		httpClient:    http.DefaultClient,
@@ -84,7 +93,7 @@ func New(token string, options ...Option) (*Client, error) {
 	}
 
 	if _, err := url.Parse(c.batchEndpoint); err != nil {
-		return nil, fmt.Errorf("batch endpoint %q: %w", c.batchEndpoint, err)
+		return nil, fmt.Errorf("batchQuotes endpoint %q: %w", c.batchEndpoint, err)
 	}
 
 	return c, nil
