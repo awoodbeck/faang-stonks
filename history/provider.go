@@ -16,8 +16,8 @@ type Archiver interface {
 // Provider describes an object that can retrieve requested stock quotes.
 type Provider interface {
 	// GetQuotes accepts a context for cancellation support, a stock symbol,
-	// and a integer representing the number of quotes to return. It returns
-	// the lesser of the requested number of quotes or the maximum number of
-	// archived quotes.
-	GetQuotes(ctx context.Context, symbol string, count int) ([]finance.Quote, error)
+	// and an integer representing the last n quotes to return. It returns
+	// the lesser of the last n quotes or the maximum number of archived
+	// quotes.
+	GetQuotes(ctx context.Context, symbol string, last int) ([]finance.Quote, error)
 }
