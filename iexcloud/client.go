@@ -29,6 +29,8 @@ type Client struct {
 	batchEndpoint string
 	timeout       time.Duration
 	token         string
+
+	httpClient *http.Client
 }
 
 func (c Client) GetQuotes(ctx context.Context, symbols ...string) ([]finance.Quote, error) {
@@ -37,8 +39,11 @@ func (c Client) GetQuotes(ctx context.Context, symbols ...string) ([]finance.Quo
 	v.Add("token", c.token)
 	v.Add("symbols", strings.ToLower(strings.Join(symbols, ",")))
 
+	callCtx, cancel := context.WithTimeout(ctx, c.timeout)
+	defer cancel()
+
 	req, err := http.NewRequestWithContext(
-		ctx,
+		callCtx,
 		http.MethodGet,
 		fmt.Sprintf("%s?%s", c.batchEndpoint, v.Encode()),
 		nil,
@@ -47,7 +52,7 @@ func (c Client) GetQuotes(ctx context.Context, symbols ...string) ([]finance.Quo
 		return nil, err
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -69,6 +74,7 @@ func (c Client) GetQuotes(ctx context.Context, symbols ...string) ([]finance.Quo
 func New(token string, options ...Option) (*Client, error) {
 	c := &Client{
 		batchEndpoint: defaultBatchEndpoint,
+		httpClient:    http.DefaultClient,
 		timeout:       defaultTimeout,
 		token:         token,
 	}
