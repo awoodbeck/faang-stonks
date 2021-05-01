@@ -8,36 +8,28 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-type Option interface {
-	apply(*Client)
-}
-
-type optFunc func(*Client)
-
-func (f optFunc) apply(c *Client) {
-	f(c)
-}
+type Option func(*Client)
 
 // BatchEndpoint accepts the full URL to the IEX Cloud API to use for batchQuotes
 // requests.
 func BatchEndpoint(url string) Option {
-	return optFunc(func(c *Client) {
+	return func(c *Client) {
 		c.batchEndpoint = url
-	})
+	}
 }
 
 // CallTimeout accepts a duration that the client should wait for a response
 // for each call.
 func CallTimeout(timeout time.Duration) Option {
-	return optFunc(func(c *Client) {
+	return func(c *Client) {
 		c.timeout = timeout
-	})
+	}
 }
 
 // InstrumentHTTPClient replaces the default HTTP client with an instrumented
 // version compatible with Prometheus.
 func InstrumentHTTPClient() Option {
-	return optFunc(func(c *Client) {
+	return func(c *Client) {
 		inFlightGauge := prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: "client_in_flight_requests",
 			Help: "A gauge of in-flight requests for the wrapped client.",
@@ -121,5 +113,5 @@ func InstrumentHTTPClient() Option {
 
 		// Set the RoundTripper on our client.
 		c.httpClient.Transport = roundTripper
-	})
+	}
 }

@@ -89,7 +89,7 @@ func New(token string, options ...Option) (*Client, error) {
 	}
 
 	for _, option := range options {
-		option.apply(c)
+		option(c)
 	}
 
 	if _, err := url.Parse(c.batchEndpoint); err != nil {

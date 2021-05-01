@@ -26,3 +26,6 @@ func (c Client) GetQuotes(ctx context.Context, symbol string, count int) ([]fina
 func (c Client) SetQuotes(ctx context.Context, quotes []finance.Quote) error {
 	panic("implement me")
 }
+
+func New() (*Client, error) {
+}
