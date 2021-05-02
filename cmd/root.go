@@ -6,7 +6,11 @@
 package cmd
 
 import (
+	"context"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -23,8 +27,8 @@ https://www.urbandictionary.com/define.php?term=Stonks`,
 
 func init() {
 	cobra.OnInitialize(func() {
-		// TODO: (adam) Add configuration file support. For the purposes of this
-		// MVP, we'll stick to using the CLI and ENV for configuration.
+		// TODO: (adam) Add configuration file support. For the purposes of
+		// this MVP, we'll stick to using the CLI and ENV for configuration.
 		viper.SetEnvPrefix("stonks")
 		viper.AutomaticEnv()
 	})
@@ -34,9 +38,21 @@ func init() {
 	}
 }
 
-func rootRun(_ *cobra.Command, _ []string) {}
+func rootRun(_ *cobra.Command, _ []string) {
+	// TODO: start the poller and REST API
+	ctx, cancel := context.WithCancel(context.Background())
+	_ = ctx
 
-// Execute Stonks
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		log.Println("Shutting down ...")
+		cancel()
+	}()
+}
+
+// Execute on those stonks!
 func Execute() error {
 	return rootCmd.Execute()
 }

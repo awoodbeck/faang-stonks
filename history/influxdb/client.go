@@ -25,6 +25,10 @@ type Client struct {
 	idb influxdb2.Client
 }
 
+func (c Client) Close() error {
+	panic("implement me")
+}
+
 func (c Client) GetQuotes(ctx context.Context, symbol string, count int) ([]finance.Quote, error) {
 	panic("implement me")
 }

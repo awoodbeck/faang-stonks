@@ -25,7 +25,7 @@ func (b batchQuotes) MarshalQuotes() ([]finance.Quote, error) {
 	for symbol := range b {
 		q, ok := b[symbol]["quote"]
 		if !ok {
-			return nil, fmt.Errorf("'quote' key for symbol %q not found", symbol)
+			return nil, fmt.Errorf("'quote' key for symbol '%s' not found", symbol)
 		}
 		quotes = append(quotes, finance.Quote{
 			Symbol: q.Symbol,
