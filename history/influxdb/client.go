@@ -29,7 +29,8 @@ func (c Client) Close() error {
 	panic("implement me")
 }
 
-func (c Client) GetQuotes(ctx context.Context, symbol string, count int) ([]finance.Quote, error) {
+func (c Client) GetQuotes(ctx context.Context, symbol string, last int) (
+	[]finance.Quote, error) {
 	panic("implement me")
 }
 
