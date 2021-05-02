@@ -1,51 +1,14 @@
-package ram
+package sqlite
 
 import (
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/awoodbeck/faang-stonks/finance"
 )
-
-func TestNewClient(t *testing.T) {
-	t.Parallel()
-
-	c, err := New()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(defaultSymbols) != len(c.quotes) {
-		t.Errorf("the quotes map length mismatches the default symbols slice length")
-	}
-
-	for _, symbol := range defaultSymbols {
-		if _, ok := c.quotes[strings.ToLower(symbol)]; !ok {
-			t.Errorf("%q not found in the quotes map", symbol)
-		}
-	}
-}
-
-func TestNewClientOptions(t *testing.T) {
-	t.Parallel()
-
-	symbols := []string{"foo", "bar"}
-	c, err := New(Symbols(symbols))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(symbols) != len(c.quotes) {
-		t.Errorf("the quotes map length mismatches the optional symbols slice length")
-	}
-
-	for _, symbol := range symbols {
-		if _, ok := c.quotes[strings.ToLower(symbol)]; !ok {
-			t.Errorf("%q not found in the quotes map", symbol)
-		}
-	}
-}
 
 func TestArchiverProvider(t *testing.T) {
 	t.Parallel()
@@ -69,10 +32,23 @@ func TestArchiverProvider(t *testing.T) {
 		},
 	}
 
-	c, err := New()
+	dir, err := ioutil.TempDir("", "stonks")
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer func() {
+		if err := os.RemoveAll(dir); err != nil {
+			t.Logf("removing temp dir: %v", err)
+		}
+	}()
+
+	t.Logf("using temp directory %q", dir)
+
+	c, err := New(DatabaseFile(filepath.Join(dir, "stonks.sqlite")))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = c.Close() }()
 
 	for i, tc := range testCases {
 		err = c.SetQuotes(nil, tc.quotes)

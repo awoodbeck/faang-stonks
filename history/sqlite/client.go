@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/awoodbeck/faang-stonks/finance"
 	"github.com/awoodbeck/faang-stonks/history"
@@ -14,28 +15,31 @@ import (
 )
 
 const (
-	defaultDBFile      = "stonks.sqlite"
-	createSymbolsTable = `
-CREATE TABLE "symbols"
-(
-	id integer not null
-		constraint stonks_pk
-			primary key autoincrement,
-	symbol text not null
-)`
+	defaultDBFile = "stonks.sqlite"
+
+	// TODO: I can make an argument for and against normalizing the symbols
+	// column. I'll keep it as-is for the purposes of this demo.
 	createQuotesTable = `
-CREATE TABLE quotes
+CREATE TABLE "quotes"
 (
 	id integer not null
 		constraint quotes_pk
 			primary key autoincrement,
-	symbol integer not null
-		constraint quotes_stonks_id_fk
-			references "symbols",
+	symbol text not null,
 	price real not null,
 	timestamp numeric not null
 )`
-	insertSymbols = `INSERT INTO symbols (symbol) VALUES (?);`
+
+	insertQuote = `
+INSERT INTO quotes (symbol, price, "timestamp")
+  VALUES (?, ?, ?)`
+
+	selectQuotes = `
+SELECT symbol, price, "timestamp"
+  FROM quotes
+  WHERE symbol = ?
+  ORDER BY "timestamp" DESC
+  LIMIT ?`
 )
 
 var (
@@ -50,7 +54,7 @@ var (
 type Client struct {
 	db      *sql.DB
 	file    string
-	symbols []string
+	symbols map[string]struct{}
 }
 
 // initialize the database file.
@@ -67,36 +71,9 @@ func (c *Client) initialize() error {
 		return fmt.Errorf("open %q: %w", c.file, err)
 	}
 
-	_, err = c.db.Exec(createSymbolsTable)
-	if err != nil {
-		return fmt.Errorf("creating symbols table: %w", err)
-	}
-
 	_, err = c.db.Exec(createQuotesTable)
 	if err != nil {
 		return fmt.Errorf("creating quotes table: %w", err)
-	}
-
-	tx, err := c.db.Begin()
-	if err != nil {
-		return fmt.Errorf("beginning transaction: %w", err)
-	}
-
-	stmt, err := tx.Prepare(insertSymbols)
-	if err != nil {
-		return fmt.Errorf("preparing insert: %w", err)
-	}
-	defer func() { _ = stmt.Close() }()
-
-	for _, symbol := range c.symbols {
-		_, err = stmt.Exec(symbol)
-		if err != nil {
-			return fmt.Errorf("inserting %q: %w", symbol, err)
-		}
-	}
-	err = tx.Commit()
-	if err != nil {
-		return fmt.Errorf("committing transaction: %w", err)
 	}
 
 	return nil
@@ -115,20 +92,79 @@ func (c Client) Close() error {
 // return.
 func (c Client) GetQuotes(ctx context.Context, symbol string, last int) (
 	[]finance.Quote, error) {
-	panic("implement me")
+	stmt, err := c.db.Prepare(selectQuotes)
+	if err != nil {
+		return nil, fmt.Errorf("selecting quotes: %w", err)
+	}
+	defer func() { _ = stmt.Close() }()
+
+	if last < 1 {
+		last = 1
+	}
+
+	rows, err := stmt.Query(strings.ToLower(symbol), last)
+	if err != nil {
+		return nil, fmt.Errorf("select query: %w", err)
+	}
+	defer func() { _ = rows.Close() }()
+
+	quotes := make([]finance.Quote, 0, last)
+
+	for rows.Next() {
+		var q finance.Quote
+		err = rows.Scan(&q.Symbol, &q.Price, &q.Time)
+		if err != nil {
+			return nil, fmt.Errorf("row scan: %w", err)
+		}
+
+		quotes = append(quotes, q)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, fmt.Errorf("rows error: %w", err)
+	}
+
+	return quotes, nil
 }
 
 // SetQuotes accepts a slice of finance.Quote objects and archives them to
 // SQLite.
 func (c Client) SetQuotes(ctx context.Context, quotes []finance.Quote) error {
-	panic("implement me")
+	tx, err := c.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("beginning transaction: %w", err)
+	}
+
+	stmt, err := tx.PrepareContext(ctx, insertQuote)
+	if err != nil {
+		return fmt.Errorf("preparing insert: %w", err)
+	}
+	defer func() { _ = stmt.Close() }()
+
+	for _, q := range quotes {
+		_, err = stmt.Exec(strings.ToLower(q.Symbol), q.Price, q.Time)
+		if err != nil {
+			return fmt.Errorf("inserting %v: %w", q, err)
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("committing transaction: %w", err)
+	}
+
+	return nil
 }
 
 // New returns a pointer to a new Client object after applying optional settings.
 func New(options ...Option) (*Client, error) {
 	c := &Client{
 		file:    defaultDBFile,
-		symbols: defaultSymbols,
+		symbols: make(map[string]struct{}),
+	}
+
+	for _, symbol := range defaultSymbols {
+		c.symbols[symbol] = struct{}{}
 	}
 
 	for _, option := range options {

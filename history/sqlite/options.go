@@ -11,9 +11,11 @@ func DatabaseFile(f string) Option {
 
 // Symbols configures the Archiver to track specific stock symbols.
 func Symbols(symbols []string) Option {
-	s := make([]string, len(symbols))
-	copy(s, symbols)
 	return func(c *Client) {
-		c.symbols = s
+		c.symbols = make(map[string]struct{})
+
+		for _, symbol := range symbols {
+			c.symbols[symbol] = struct{}{}
+		}
 	}
 }
