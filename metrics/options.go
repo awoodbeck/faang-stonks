@@ -1,34 +1,30 @@
-package api
+package metrics
 
-import "time"
+import (
+	"net/http"
+	"time"
+)
 
-type Option func(*Server)
-
-// DisableInstrumentation turns off server instrumentation.
-func DisableInstrumentation() Option {
-	return func(s *Server) {
-		s.instrumentation = false
-	}
-}
+type Option func(*http.Server)
 
 // IdleTimeout sets the server's IdleTimeout value to the given duration.
 func IdleTimeout(d time.Duration) Option {
-	return func(s *Server) {
-		s.idleTimeout = d
+	return func(s *http.Server) {
+		s.IdleTimeout = d
 	}
 }
 
 // ListenAddress specifies the server's listen address.
 func ListenAddress(addr string) Option {
-	return func(s *Server) {
-		s.listenAddr = addr
+	return func(s *http.Server) {
+		s.Addr = addr
 	}
 }
 
 // ReadHeaderTimeout sets the server's ReadHeaderTimeout value to the given
 // duration.
 func ReadHeaderTimeout(d time.Duration) Option {
-	return func(s *Server) {
-		s.readHeaderTimeout = d
+	return func(s *http.Server) {
+		s.ReadHeaderTimeout = d
 	}
 }
