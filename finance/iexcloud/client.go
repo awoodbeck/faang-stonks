@@ -18,7 +18,7 @@ import (
 const (
 	// defaultBatchEndpoint is the default batchQuotes endpoint for the IEX
 	// Cloud API.
-	defaultBatchEndpoint = "https://cloud.iexapis.com/stable/stock/market/batchQuotes"
+	defaultBatchEndpoint = "https://sandbox.iexapis.com/stable/stock/market/batchQuotes"
 
 	// defaultTimeout is the default duration the client waits to a response.
 	defaultTimeout = 10 * time.Second

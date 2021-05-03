@@ -5,8 +5,12 @@
 // implementation may fit the business case when we only care about stock
 // prices while the service runs. The downside is RAM is more expensive than
 // disk, so we have to be mindful of the growing memory consumption of this
-// approach. That said, we could use something like a fixed buffer to limit
+// approach. That said, we could use something like a fixed queue to limit
 // the number of quotes per symbol we track.
+//
+// Side note: I punt on time zone handling in this example, storing timestamps
+// as-is. That isn't suitable in production, of course. You can see how I
+// approach this problem in the sqlite.Client.
 package ram
 
 import (

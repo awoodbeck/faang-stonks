@@ -1,11 +1,12 @@
 package sqlite
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"reflect"
 	"testing"
+	"time"
 
 	"github.com/awoodbeck/faang-stonks/finance"
 )
@@ -13,6 +14,7 @@ import (
 func TestArchiverProvider(t *testing.T) {
 	t.Parallel()
 
+	now := time.Now()
 	testCases := []struct {
 		quotes   []finance.Quote
 		symbol   string
@@ -21,13 +23,13 @@ func TestArchiverProvider(t *testing.T) {
 	}{
 		{ // add multiple quotes but return the last one added
 			quotes: []finance.Quote{
-				{Price: 123.45, Symbol: "fb"},
-				{Price: 123.42, Symbol: "fb"},
+				{Price: 123.45, Symbol: "fb", Time: now},
+				{Price: 123.42, Symbol: "fb", Time: now},
 			},
 			symbol: "fb",
 			last:   0,
 			expected: []finance.Quote{
-				{Price: 123.42, Symbol: "fb"},
+				{Price: 123.42, Symbol: "fb", Time: now},
 			},
 		},
 	}
@@ -51,22 +53,32 @@ func TestArchiverProvider(t *testing.T) {
 	defer func() { _ = c.Close() }()
 
 	for i, tc := range testCases {
-		err = c.SetQuotes(nil, tc.quotes)
+		err = c.SetQuotes(context.Background(), tc.quotes)
 		if err != nil {
 			t.Errorf("%d: set actual: %v", i, err)
 			continue
 		}
 
-		actual, err := c.GetQuotes(nil, tc.symbol, tc.last)
+		actual, err := c.GetQuotes(context.Background(), tc.symbol, tc.last)
 		if err != nil {
 			t.Errorf("%d: get quotes: %v", i, err)
 			continue
 		}
 
-		if !reflect.DeepEqual(actual, tc.expected) {
-			t.Errorf("%d: actual quotes not equal to expected", i)
-			t.Logf("expected: %#v", tc.expected)
-			t.Logf("actual:   %#v", actual)
+		if len(actual) != len(tc.expected) {
+			t.Errorf("%d: actual quote count not equal to expected count", i)
+			continue
+		}
+
+		for j, q := range actual {
+			if expected := tc.expected[j]; q.Price != expected.Price {
+				t.Errorf("%d.%d: actual price: %.2f; expected: %.2f", i, j,
+					q.Price, expected.Price)
+			}
+			if expected := tc.expected[j]; q.Symbol != expected.Symbol {
+				t.Errorf("%d.%d: actual symbol: %q; expected: %q", i, j,
+					q.Symbol, expected.Symbol)
+			}
 		}
 	}
 }

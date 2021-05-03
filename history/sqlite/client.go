@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/awoodbeck/faang-stonks/finance"
 	"github.com/awoodbeck/faang-stonks/history"
@@ -27,18 +28,18 @@ CREATE TABLE "quotes"
 			primary key autoincrement,
 	symbol text not null,
 	price real not null,
-	timestamp numeric not null
+	datetime timestamp not null
 )`
 
 	insertQuote = `
-INSERT INTO quotes (symbol, price, "timestamp")
+INSERT INTO quotes (symbol, price, datetime)
   VALUES (?, ?, ?)`
 
 	selectQuotes = `
-SELECT symbol, price, "timestamp"
+SELECT symbol, price, datetime
   FROM quotes
   WHERE symbol = ?
-  ORDER BY "timestamp" DESC
+  ORDER BY id DESC
   LIMIT ?`
 )
 
@@ -111,11 +112,15 @@ func (c Client) GetQuotes(ctx context.Context, symbol string, last int) (
 	quotes := make([]finance.Quote, 0, last)
 
 	for rows.Next() {
-		var q finance.Quote
-		err = rows.Scan(&q.Symbol, &q.Price, &q.Time)
+		var (
+			q finance.Quote
+			t time.Time
+		)
+		err = rows.Scan(&q.Symbol, &q.Price, &t)
 		if err != nil {
 			return nil, fmt.Errorf("row scan: %w", err)
 		}
+		q.Time = t.Local()
 
 		quotes = append(quotes, q)
 	}
@@ -143,7 +148,7 @@ func (c Client) SetQuotes(ctx context.Context, quotes []finance.Quote) error {
 	defer func() { _ = stmt.Close() }()
 
 	for _, q := range quotes {
-		_, err = stmt.Exec(strings.ToLower(q.Symbol), q.Price, q.Time)
+		_, err = stmt.Exec(strings.ToLower(q.Symbol), q.Price, q.Time.UTC())
 		if err != nil {
 			return fmt.Errorf("inserting %v: %w", q, err)
 		}
@@ -166,6 +171,9 @@ func New(options ...Option) (*Client, error) {
 	for _, symbol := range defaultSymbols {
 		c.symbols[symbol] = struct{}{}
 	}
+
+	c.db.SetMaxIdleConns(2)
+	c.db.SetConnMaxLifetime(-1)
 
 	for _, option := range options {
 		option(c)

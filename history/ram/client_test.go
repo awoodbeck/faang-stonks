@@ -1,6 +1,7 @@
 package ram
 
 import (
+	"context"
 	"reflect"
 	"strings"
 	"testing"
@@ -75,13 +76,13 @@ func TestArchiverProvider(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-		err = c.SetQuotes(nil, tc.quotes)
+		err = c.SetQuotes(context.Background(), tc.quotes)
 		if err != nil {
 			t.Errorf("%d: set actual: %v", i, err)
 			continue
 		}
 
-		actual, err := c.GetQuotes(nil, tc.symbol, tc.last)
+		actual, err := c.GetQuotes(context.Background(), tc.symbol, tc.last)
 		if err != nil {
 			t.Errorf("%d: get quotes: %v", i, err)
 			continue
