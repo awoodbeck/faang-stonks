@@ -10,4 +10,7 @@ require (
 	github.com/spf13/viper v1.7.0
 	go.uber.org/multierr v1.6.0
 	go.uber.org/zap v1.16.0
+	golang.org/x/mod v0.4.2 // indirect
+	golang.org/x/tools v0.1.0 // indirect
+	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 )

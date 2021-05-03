@@ -44,8 +44,6 @@ SELECT symbol, price, datetime
 )
 
 var (
-	defaultSymbols = []string{"fb", "amzn", "aapl", "nflx", "goog"}
-
 	_ history.Archiver = (*Client)(nil)
 	_ history.Provider = (*Client)(nil)
 )
@@ -53,9 +51,11 @@ var (
 // Client implements the history.Archiver and history.Provider interfaces,
 // knowing how to store and retrieve stock quotes, respectively.
 type Client struct {
-	db      *sql.DB
-	file    string
-	symbols map[string]struct{}
+	db              *sql.DB
+	file            string
+	maxIdleConns    int
+	maxConnLifetime time.Duration
+	symbols         map[string]struct{}
 }
 
 // initialize the database file.
@@ -164,16 +164,15 @@ func (c Client) SetQuotes(ctx context.Context, quotes []finance.Quote) error {
 // New returns a pointer to a new Client object after applying optional settings.
 func New(options ...Option) (*Client, error) {
 	c := &Client{
-		file:    defaultDBFile,
-		symbols: make(map[string]struct{}),
+		file:            defaultDBFile,
+		maxConnLifetime: -1,
+		maxIdleConns:    2,
+		symbols:         make(map[string]struct{}),
 	}
 
-	for _, symbol := range defaultSymbols {
+	for _, symbol := range finance.DefaultSymbols {
 		c.symbols[symbol] = struct{}{}
 	}
-
-	c.db.SetMaxIdleConns(2)
-	c.db.SetConnMaxLifetime(-1)
 
 	for _, option := range options {
 		option(c)
@@ -182,6 +181,9 @@ func New(options ...Option) (*Client, error) {
 	if err := c.initialize(); err != nil {
 		return nil, err
 	}
+
+	c.db.SetConnMaxLifetime(c.maxConnLifetime)
+	c.db.SetMaxIdleConns(c.maxIdleConns)
 
 	return c, nil
 }

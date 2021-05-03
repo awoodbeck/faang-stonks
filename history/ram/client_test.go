@@ -17,11 +17,11 @@ func TestNewClient(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(defaultSymbols) != len(c.quotes) {
+	if len(finance.DefaultSymbols) != len(c.quotes) {
 		t.Errorf("the quotes map length mismatches the default symbols slice length")
 	}
 
-	for _, symbol := range defaultSymbols {
+	for _, symbol := range finance.DefaultSymbols {
 		if _, ok := c.quotes[strings.ToLower(symbol)]; !ok {
 			t.Errorf("%q not found in the quotes map", symbol)
 		}

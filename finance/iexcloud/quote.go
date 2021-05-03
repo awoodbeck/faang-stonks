@@ -11,8 +11,8 @@ import (
 // translate an IEX Cloud JSON to the finance.Quote type.
 type quote struct {
 	Symbol    string  `json:"symbol"`
-	Price     float64 `json:"iexRealtimePrice"`
-	Timestamp int64   `json:"iexLastUpdated"`
+	Price     float64 `json:"latestPrice"`
+	Timestamp int64   `json:"latestUpdate"`
 }
 
 type batchQuotes map[string]map[string]quote

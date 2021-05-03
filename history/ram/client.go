@@ -25,8 +25,6 @@ import (
 )
 
 var (
-	defaultSymbols = []string{"fb", "amzn", "aapl", "nflx", "goog"}
-
 	_ history.Archiver = (*Client)(nil)
 	_ history.Provider = (*Client)(nil)
 )
@@ -93,7 +91,7 @@ func (c *Client) SetQuotes(_ context.Context, quotes []finance.Quote) error {
 func New(options ...Option) (*Client, error) {
 	c := &Client{quotes: make(map[string][]finance.Quote)}
 
-	for _, symbol := range defaultSymbols {
+	for _, symbol := range finance.DefaultSymbols {
 		c.quotes[strings.ToLower(symbol)] = []finance.Quote{}
 	}
 

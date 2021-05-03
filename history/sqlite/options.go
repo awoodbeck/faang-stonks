@@ -8,7 +8,7 @@ type Option func(*Client)
 // duration.
 func ConnMaxLifetime(d time.Duration) Option {
 	return func(c *Client) {
-		c.db.SetConnMaxLifetime(d)
+		c.maxConnLifetime = d
 	}
 }
 
@@ -23,7 +23,7 @@ func DatabaseFile(f string) Option {
 // idle.
 func MaxIdleConnections(i int) Option {
 	return func(c *Client) {
-		c.db.SetMaxIdleConns(i)
+		c.maxIdleConns = i
 	}
 }
 

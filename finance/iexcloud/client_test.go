@@ -1,8 +1,12 @@
 package iexcloud
 
 import (
+	"context"
+	"os"
 	"testing"
 	"time"
+
+	"github.com/awoodbeck/faang-stonks/finance"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -77,5 +81,35 @@ func TestNewClientInvalidEndpoint(t *testing.T) {
 	}
 }
 
-// TODO: Mock up an end point that serves up IEX Cloud quotes and test the
-// client.
+func TestClientGetQuotes(t *testing.T) {
+	t.Parallel()
+
+	token := os.Getenv("STONKS_IEX_TOKEN")
+	if token == "" {
+		t.Logf("token not found in the STONKS_IEX_TOKEN environment variable")
+		t.SkipNow()
+	}
+
+	c, err := New(token)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	quotes, err := c.GetQuotes(context.Background(), finance.DefaultSymbols...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for i, quote := range quotes {
+		t.Logf("%d: %#v", i, quote)
+		if quote.Price == 0 {
+			t.Errorf("%d: price failed to decode", i)
+		}
+		if quote.Symbol == "" {
+			t.Errorf("%d: symbol failed to decode", i)
+		}
+		if quote.Time.Equal(time.Time{}) {
+			t.Errorf("%d: time failed to decode", i)
+		}
+	}
+}
