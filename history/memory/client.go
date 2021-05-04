@@ -1,5 +1,5 @@
-// Package ram provides history.Archiver and history.Provider implementations
-// that use RAM for volatile storage.
+// Package memory provides history.Archiver and history.Provider
+// implementations that use RAM for volatile storage.
 //
 // The requirements regarding volatility weren't specific, but this
 // implementation may fit the business case when we only care about stock
@@ -11,7 +11,7 @@
 // Side note: I punt on time zone handling in this example, storing timestamps
 // as-is. That isn't suitable in production, of course. You can see how I
 // approach this problem in the sqlite.Client.
-package ram
+package memory
 
 import (
 	"context"
@@ -41,8 +41,8 @@ func (c *Client) Close() error {
 	return nil
 }
 
-// GetQuotes accepts a stock symbol and the last N quotes for the stock to
-// return.
+// GetQuotes accepts a stock symbol and the last N quotes for the stock. It
+// returns a slice of finance.Quote objects for the stock.
 func (c *Client) GetQuotes(_ context.Context, symbol string, last int) (
 	[]finance.Quote, error) {
 	c.mu.RLock()
@@ -64,6 +64,39 @@ func (c *Client) GetQuotes(_ context.Context, symbol string, last int) (
 	copy(out, quotes)
 
 	return out, nil
+}
+
+// GetQuotesBatch accepts a slice of stock symbols and the last N quotes for
+// each stock. It returns a map where each key is a stock symbol and the value
+// is the stock's quote(s).
+func (c *Client) GetQuotesBatch(_ context.Context, symbols []string,
+	last int) (finance.QuoteBatch, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	if len(symbols) == 0 {
+		symbols = finance.DefaultSymbols
+	}
+
+	batch := make(finance.QuoteBatch)
+	for _, symbol := range symbols {
+		quotes, ok := c.quotes[strings.ToLower(symbol)]
+		if !ok {
+			return nil, fmt.Errorf("quotes for %q not found", symbol)
+		}
+
+		if last < 1 {
+			last = 1
+		}
+		if len(quotes) < last {
+			last = len(quotes)
+		}
+
+		batch[symbol] = make([]finance.Quote, last)
+		copy(batch[symbol], quotes)
+	}
+
+	return batch, nil
 }
 
 // SetQuotes accepts a slice of finance.Quote objects and archives them to

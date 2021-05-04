@@ -1,9 +1,11 @@
+// Package metrics provides instrumentation for the rest of the application,
+// and the requisite HTTP server to serve the Prometheus endpoint separate
+// from the REST API endpoint.
 package metrics
 
 import "github.com/prometheus/client_golang/prometheus"
 
 func init() {
-	// Register all of the metrics in the standard registry.
 	prometheus.MustRegister(
 		ClientAPIRequests,
 		ClientDNSDuration,

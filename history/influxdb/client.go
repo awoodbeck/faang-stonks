@@ -34,6 +34,11 @@ func (c Client) GetQuotes(ctx context.Context, symbol string, last int) (
 	panic("implement me")
 }
 
+func (c Client) GetQuotesBatch(ctx context.Context, symbols []string,
+	last int) (finance.QuoteBatch, error) {
+	panic("implement me")
+}
+
 func (c Client) SetQuotes(ctx context.Context, quotes []finance.Quote) error {
 	panic("implement me")
 }

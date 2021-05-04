@@ -41,6 +41,20 @@ SELECT symbol, price, datetime
   WHERE symbol = ?
   ORDER BY id DESC
   LIMIT ?`
+
+	// partition by symbol and select the top N rows from each partition
+	// when batching
+	selectQuotesBatch = `
+WITH summary AS (
+  SELECT q.symbol, q.price, q.datetime, ROW_NUMBER()
+    OVER(PARTITION BY q.symbol
+    ORDER BY q.id DESC) AS rank
+  FROM quotes q
+)
+SELECT s.*
+FROM summary s
+WHERE symbol IN (XXX)
+  AND s.rank <= ?`
 )
 
 var (
@@ -131,6 +145,63 @@ func (c Client) GetQuotes(ctx context.Context, symbol string, last int) (
 	}
 
 	return quotes, nil
+}
+
+// GetQuotesBatch accepts a slice of symbols and an integer indicating the last
+// N quotes per symbol to return to the caller.
+func (c *Client) GetQuotesBatch(ctx context.Context, symbols []string,
+	last int) (finance.QuoteBatch, error) {
+
+	// We need to build up the query string to ensure we include the correct
+	// number of place holders per symbol in the IN clause. It's not pretty,
+	// but it's more attractive than little Bobby Tables (xkcd #327 for the
+	// reference).
+	q := fmt.Sprintf("?%s", strings.Repeat(", ?", len(symbols)-1))
+	stmt, err := c.db.Prepare(strings.Replace(selectQuotesBatch, "XXX", q, 1))
+	if err != nil {
+		return nil, fmt.Errorf("selecting quotes batch: %w", err)
+	}
+	defer func() { _ = stmt.Close() }()
+
+	if last < 1 {
+		last = 1
+	}
+
+	lcSymbols := make([]interface{}, 0, len(symbols)+1)
+	for _, symbol := range symbols {
+		lcSymbols = append(lcSymbols, strings.ToLower(symbol))
+	}
+	lcSymbols = append(lcSymbols, last)
+
+	rows, err := stmt.Query(lcSymbols...)
+	if err != nil {
+		return nil, fmt.Errorf("select query batch: %w", err)
+	}
+	defer func() { _ = rows.Close() }()
+
+	batch := make(finance.QuoteBatch)
+
+	for rows.Next() {
+		var (
+			q finance.Quote
+			t time.Time
+			r int
+		)
+		err = rows.Scan(&q.Symbol, &q.Price, &t, &r)
+		if err != nil {
+			return nil, fmt.Errorf("row scan: %w", err)
+		}
+		q.Time = t.Local()
+
+		batch[q.Symbol] = append(batch[q.Symbol], q)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, fmt.Errorf("rows error: %w", err)
+	}
+
+	return batch, nil
 }
 
 // SetQuotes accepts a slice of finance.Quote objects and archives them to

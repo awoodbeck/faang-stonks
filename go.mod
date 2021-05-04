@@ -3,6 +3,7 @@ module github.com/awoodbeck/faang-stonks
 go 1.16
 
 require (
+	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/influxdata/influxdb-client-go/v2 v2.2.3
 	github.com/mattn/go-sqlite3 v1.14.7

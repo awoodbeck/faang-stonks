@@ -60,7 +60,7 @@ func (p Poller) Poll(ctx context.Context, interval time.Duration,
 func New(p finance.Provider, a history.Archiver, l *zap.SugaredLogger) (
 	*Poller, error) {
 	return &Poller{
-		log:      l,
+		log:      l.Named("poll"),
 		archiver: a,
 		provider: p,
 	}, nil

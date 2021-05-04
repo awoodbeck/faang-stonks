@@ -10,3 +10,5 @@ type Quote struct {
 	Symbol string    `json:"symbol"`
 	Time   time.Time `json:"time"`
 }
+
+type QuoteBatch map[string][]Quote
