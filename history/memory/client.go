@@ -50,7 +50,7 @@ func (c *Client) GetQuotes(_ context.Context, symbol string, last int) (
 
 	quotes, ok := c.quotes[strings.ToLower(symbol)]
 	if !ok {
-		return nil, fmt.Errorf("quotes for %q not found", symbol)
+		return nil, history.ErrNotFound
 	}
 
 	if last < 1 {
@@ -82,7 +82,10 @@ func (c *Client) GetQuotesBatch(_ context.Context, symbols []string,
 	for _, symbol := range symbols {
 		quotes, ok := c.quotes[strings.ToLower(symbol)]
 		if !ok {
-			return nil, fmt.Errorf("quotes for %q not found", symbol)
+			return nil, history.ErrNotFound
+		}
+		if len(quotes) == 0 {
+			continue
 		}
 
 		if last < 1 {
@@ -121,7 +124,7 @@ func (c *Client) SetQuotes(_ context.Context, quotes []finance.Quote) error {
 }
 
 // New returns a pointer to a new Client object after applying optional settings.
-func New(options ...Option) (*Client, error) {
+func New(options ...Option) *Client {
 	c := &Client{quotes: make(map[string][]finance.Quote)}
 
 	for _, symbol := range finance.DefaultSymbols {
@@ -132,5 +135,5 @@ func New(options ...Option) (*Client, error) {
 		option(c)
 	}
 
-	return c, nil
+	return c
 }

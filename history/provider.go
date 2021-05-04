@@ -4,9 +4,12 @@ package history
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/awoodbeck/faang-stonks/finance"
 )
+
+var ErrNotFound = fmt.Errorf("not found")
 
 // Provider describes an object that can retrieve requested stock quotes.
 type Provider interface {

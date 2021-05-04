@@ -71,13 +71,13 @@ func TestGetQuotes(t *testing.T) {
 		}
 
 		for j, q := range actual {
-			if expected := tc.expected[j]; q.Price != expected.Price {
+			if q.Price != tc.expected[i].Price {
 				t.Errorf("%d.%d: actual price: %.2f; expected: %.2f", i, j,
-					q.Price, expected.Price)
+					q.Price, tc.expected[i].Price)
 			}
-			if expected := tc.expected[j]; q.Symbol != expected.Symbol {
+			if q.Symbol != tc.expected[i].Symbol {
 				t.Errorf("%d.%d: actual symbol: %q; expected: %q", i, j,
-					q.Symbol, expected.Symbol)
+					q.Symbol, tc.expected[i].Symbol)
 			}
 		}
 	}
@@ -105,12 +105,12 @@ func TestGetQuotesBatch(t *testing.T) {
 			last:    2,
 			expected: finance.QuoteBatch{
 				"fb": {
-					{Price: 123.42, Symbol: "fb"},
 					{Price: 123.40, Symbol: "fb"},
+					{Price: 123.42, Symbol: "fb"},
 				},
 				"goog": {
-					{Price: 234.56, Symbol: "goog"},
 					{Price: 234.51, Symbol: "goog"},
+					{Price: 234.56, Symbol: "goog"},
 				},
 			},
 		},
@@ -148,11 +148,24 @@ func TestGetQuotesBatch(t *testing.T) {
 			continue
 		}
 
-		t.Logf("%#v", actual)
-
 		if len(actual) != len(tc.expected) {
 			t.Errorf("%d: actual quote count not equal to expected count", i)
+			t.Logf("expected: %#v", tc.expected)
+			t.Logf("actual:   %#v", actual)
 			continue
+		}
+
+		for symbol := range actual {
+			for j, q := range actual[symbol] {
+				if q.Price != tc.expected[symbol][j].Price {
+					t.Errorf("actual price: %.2f; expected: %.2f", q.Price,
+						tc.expected[symbol][j].Price)
+				}
+				if q.Symbol != tc.expected[symbol][j].Symbol {
+					t.Errorf("actual symbol: %q; expected: %q", q.Symbol,
+						tc.expected[symbol][j].Symbol)
+				}
+			}
 		}
 	}
 }

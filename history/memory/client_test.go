@@ -12,10 +12,7 @@ import (
 func TestNewClient(t *testing.T) {
 	t.Parallel()
 
-	c, err := New()
-	if err != nil {
-		t.Fatal(err)
-	}
+	c := New()
 
 	if len(finance.DefaultSymbols) != len(c.quotes) {
 		t.Errorf("the quotes map length mismatches the default symbols slice length")
@@ -32,10 +29,7 @@ func TestNewClientOptions(t *testing.T) {
 	t.Parallel()
 
 	symbols := []string{"foo", "bar"}
-	c, err := New(Symbols(symbols))
-	if err != nil {
-		t.Fatal(err)
-	}
+	c := New(Symbols(symbols))
 
 	if len(symbols) != len(c.quotes) {
 		t.Errorf("the quotes map length mismatches the optional symbols slice length")
@@ -70,13 +64,10 @@ func TestGetQuotes(t *testing.T) {
 		},
 	}
 
-	c, err := New()
-	if err != nil {
-		t.Fatal(err)
-	}
+	c := New()
 
 	for i, tc := range testCases {
-		err = c.SetQuotes(context.Background(), tc.quotes)
+		err := c.SetQuotes(context.Background(), tc.quotes)
 		if err != nil {
 			t.Errorf("%d: set actual: %v", i, err)
 			continue
@@ -124,13 +115,10 @@ func TestGetQuotesBatch(t *testing.T) {
 		},
 	}
 
-	c, err := New()
-	if err != nil {
-		t.Fatal(err)
-	}
+	c := New()
 
 	for i, tc := range testCases {
-		err = c.SetQuotes(context.Background(), tc.quotes)
+		err := c.SetQuotes(context.Background(), tc.quotes)
 		if err != nil {
 			t.Errorf("%d: set actual: %v", i, err)
 			continue

@@ -144,6 +144,10 @@ func (c Client) GetQuotes(ctx context.Context, symbol string, last int) (
 		return nil, fmt.Errorf("rows error: %w", err)
 	}
 
+	if len(quotes) == 0 {
+		return nil, history.ErrNotFound
+	}
+
 	return quotes, nil
 }
 
@@ -199,6 +203,10 @@ func (c *Client) GetQuotesBatch(ctx context.Context, symbols []string,
 	err = rows.Err()
 	if err != nil {
 		return nil, fmt.Errorf("rows error: %w", err)
+	}
+
+	if len(batch) == 0 {
+		return nil, history.ErrNotFound
 	}
 
 	return batch, nil
