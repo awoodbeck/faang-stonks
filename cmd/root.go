@@ -8,6 +8,8 @@ package cmd
 import (
 	"context"
 	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
@@ -39,7 +41,7 @@ func init() {
 }
 
 func rootRun(_ *cobra.Command, _ []string) {
-	// TODO: start the poller and REST API
+	// TODO: spin up poller, metrics server, and API server.
 	ctx, cancel := context.WithCancel(context.Background())
 	_ = ctx
 
@@ -49,6 +51,11 @@ func rootRun(_ *cobra.Command, _ []string) {
 		<-c
 		log.Println("Shutting down ...")
 		cancel()
+	}()
+
+	go func() { // pprof server
+		// TODO: make this address configurable
+		_ = http.ListenAndServe("localhost:6060", nil)
 	}()
 }
 

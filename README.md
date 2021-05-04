@@ -1,6 +1,7 @@
 # faang-stonks
 
-_No affiliation with [r/Superstonks](https://www.reddit.com/r/Superstonks/)._
+_No affiliation with, but inspired by
+[r/Superstonks](https://www.reddit.com/r/Superstonks/)._
 
 ## Requirements
 
@@ -12,29 +13,22 @@ _No affiliation with [r/Superstonks](https://www.reddit.com/r/Superstonks/)._
   application instantiation.
 * Use git for version control and frequently commit changes.
 
-## TODO
+## Motivation
 
-* Zap logger
-* Lumberjack for log rotation
-* SQLite for data storage, though InfluxDB would be a better choice if scale
-  was a concern.
-* Interfaces: Finance and History
-* Goroutine that uses a ticker to pull data from the Provider at regular
-  intervals. It can update the DataStore.
-  * Attempt to pre-populate historical data upon init.
-  * Add option to only update stock prices during market open times.
-    * This should be the responsibility of the Provider implementation. The
-    goroutine that requests this data shouldn't have to manage that state.
-    * The reasoning here is we don't want to incur provider costs when the price
-    is unlikely to change.
-    * Managing this state in memory should be just fine.
-    * Batch calls
-* Prometheus for metrics.
-* Pprof endpoint on localhost.
+I want to answer the question, how would I structure a service to meet a set
+of requirements with no mention of scale?
+
+The scale ambiguity adds an interesting aspect to this problem. Should the
+service be able to run on a $5/mo. VPS? Should it run at Google scale? Maybe
+somewhere in between? The code could vary widely depending on the scale.
+
+This project is my attempt to find a happy medium between scalable, agile (the
+code), readable (i.e., not clever to the point of illegible code), secure, and 
+above all, simple.
 
 ## Discussion
 
-The project's requirements didn't specify the scale at which this service 
+The project's requirements don't specify the scale at which this service 
 should operate. As such, I took my usual approach: keep things simple yet 
 flexible to meet future requirements without the need for a complete code
 refactor.
@@ -42,8 +36,23 @@ refactor.
 For example, SQLite isn't the best choice for time-series data storage at
 scale, but it's good enough for this MVP in the absence of detailed scale
 requirements. I've included a stub for InfluxDB to illustrate how I could add
-support for it without affecting the rest of the code.
+support for it without affecting the rest of the code. I also included an in-
+memory implementation.
 
 You'll find a similar pattern for financial data providers. I define an
 interface the rest of the code consumes, and then add an implementation of
 that interface for my financial data provider (IEX Cloud in this case).
+
+## TODO (aka, it's a work in progress)
+
+1. Finish CLI and configuration handling
+2. Lumberjack for log rotation
+3. Pprof endpoint on localhost
+4. Additional tests to cover edge cases
+5. Dockerize it
+6. Give everything a once-over*
+7. Goto step 6
+
+* I worked on this in my free time, which meant I didn't have many consecutive
+  hours dedicated to writing this code. Therefore, I'm sure some stuff escaped
+  my attention with all context switching.

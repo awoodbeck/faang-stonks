@@ -27,7 +27,7 @@ func stock(p history.Provider, log *zap.SugaredLogger) http.HandlerFunc {
 		if !ok || symbol == "" {
 			log.Errorw("symbol not found in request URI!", "uri", r.RequestURI)
 			w.WriteHeader(http.StatusInternalServerError)
-			_, _ = w.Write([]byte(`Internal server error`))
+			_, _ = w.Write([]byte("Internal server error"))
 			return
 		}
 
@@ -44,11 +44,11 @@ func stock(p history.Provider, log *zap.SugaredLogger) http.HandlerFunc {
 		if err != nil {
 			if err == history.ErrNotFound {
 				w.WriteHeader(http.StatusNotFound)
-				_, _ = w.Write([]byte(`Not found`))
+				_, _ = w.Write([]byte("Not found"))
 			} else {
 				log.Error(err, zap.String("url", r.URL.String()))
 				w.WriteHeader(http.StatusInternalServerError)
-				_, _ = w.Write([]byte(`Internal server error`))
+				_, _ = w.Write([]byte("Internal server error"))
 			}
 			return
 		}
@@ -83,11 +83,11 @@ func stocks(p history.Provider, log *zap.SugaredLogger) http.HandlerFunc {
 		if err != nil {
 			if err == history.ErrNotFound {
 				w.WriteHeader(http.StatusNotFound)
-				_, _ = w.Write([]byte(`Not found`))
+				_, _ = w.Write([]byte("Not found"))
 			} else {
 				log.Error(err, zap.String("url", r.URL.String()))
 				w.WriteHeader(http.StatusInternalServerError)
-				_, _ = w.Write([]byte(`Internal server error`))
+				_, _ = w.Write([]byte("Internal server error"))
 			}
 			return
 		}

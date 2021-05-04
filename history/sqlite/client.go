@@ -156,7 +156,7 @@ func (c Client) GetQuotes(ctx context.Context, symbol string, last int) (
 func (c *Client) GetQuotesBatch(ctx context.Context, symbols []string,
 	last int) (finance.QuoteBatch, error) {
 
-	// We need to build up the query string to ensure we include the correct
+	// We need to build up the query string to ensure it includes the correct
 	// number of place holders per symbol in the IN clause. It's not pretty,
 	// but it's more attractive than little Bobby Tables (xkcd #327 for the
 	// reference).
