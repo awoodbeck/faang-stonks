@@ -134,7 +134,7 @@ func (c Client) GetQuotes(ctx context.Context, symbol string, last int) (
 		if err != nil {
 			return nil, fmt.Errorf("row scan: %w", err)
 		}
-		q.Time = t.Local()
+		q.Time = t.UTC()
 
 		quotes = append(quotes, q)
 	}
@@ -195,7 +195,7 @@ func (c *Client) GetQuotesBatch(ctx context.Context, symbols []string,
 		if err != nil {
 			return nil, fmt.Errorf("row scan: %w", err)
 		}
-		q.Time = t.Local()
+		q.Time = t.UTC()
 
 		batch[q.Symbol] = append(batch[q.Symbol], q)
 	}
