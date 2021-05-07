@@ -43,6 +43,7 @@ func (p Poller) Poll(ctx context.Context, interval time.Duration,
 		interval = DefaultPollDuration
 	}
 
+	p.log.Infof("polling interval: %s", interval)
 	t := time.NewTicker(interval)
 	defer t.Stop()
 

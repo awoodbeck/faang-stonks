@@ -32,26 +32,16 @@ import (
 var (
 	rootCmd = &cobra.Command{
 		Use:   "stonks",
-		Short: "Stonks helps you track your financial decision, questionable or otherwise.",
-		Long: `Stonks helps you track your financial decision, questionable or otherwise.
+		Short: "Stonks helps you track your financial positions, questionable or otherwise.",
+		Long: `Stonks helps you track your financial positions, questionable or otherwise.
 
 https://www.urbandictionary.com/define.php?term=Stonks`,
 		PreRun: rootPreRun,
 		Run:    rootRun,
 	}
 
-	encoderCfg = zapcore.EncoderConfig{
-		MessageKey: "msg",
-		NameKey:    "name",
-
-		LevelKey:    "level",
-		EncodeLevel: zapcore.LowercaseLevelEncoder,
-
-		CallerKey:    "caller",
-		EncodeCaller: zapcore.ShortCallerEncoder,
-	}
-
 	logOutput zapcore.WriteSyncer = os.Stdout
+	logLevel                      = zapcore.DebugLevel
 )
 
 func init() {
@@ -67,7 +57,7 @@ func init() {
 
 	// API server settings
 	rootCmd.Flags().Duration("api-idle-timeout", api.DefaultIdleTimeout, "duration clients are allowed to idle")
-	rootCmd.Flags().StringP("a", "api-listen-addr", api.DefaultListenAddress, "API server host:port")
+	rootCmd.Flags().StringP("api-listen-addr", "a", api.DefaultListenAddress, "API server host:port")
 	rootCmd.Flags().Bool("api-metrics", true, "enable metrics for the API server")
 	rootCmd.Flags().Duration("api-read-headers-timeout", api.DefaultReadHeaderTimeout, "duration clients have to send request headers")
 
@@ -75,10 +65,10 @@ func init() {
 	rootCmd.Flags().String("iex-batch-endpoint", iexcloud.DefaultBatchEndpoint, "IEX Cloud API batch endpoint URL")
 	rootCmd.Flags().Duration("iex-call-timeout", iexcloud.DefaultTimeout, "API call timeout")
 	rootCmd.Flags().Bool("iex-metrics", false, "collect metrics for IEX Cloud API calls")
-	rootCmd.Flags().StringP("t", "iex-token", "", "IEX Cloud API token")
+	rootCmd.Flags().StringP("iex-token", "t", "", "IEX Cloud API token")
 
 	// Logger settings
-	rootCmd.Flags().StringP("l", "log", "stdout", "log file path")
+	rootCmd.Flags().StringP("log", "l", "stdout", "log file path")
 	rootCmd.Flags().Bool("log-compress", false, "compress rotated log files")
 	rootCmd.Flags().Bool("log-localtime", false, "log file names use local time, UTC otherwise")
 	rootCmd.Flags().Int("log-max-age", 7, "max days to retain old log files")
@@ -87,13 +77,14 @@ func init() {
 
 	// SQLite settings
 	rootCmd.Flags().Duration("sqlite-conn-max-lifetime", sqlite.DefaultConnsMaxLifetime, "max client connection lifetime")
-	rootCmd.Flags().StringP("d", "sqlite-database", sqlite.DefaultDatabaseFile, "database file path")
+	rootCmd.Flags().StringP("sqlite-database", "d", sqlite.DefaultDatabaseFile, "database file path")
 	rootCmd.Flags().Int("sqlite-max-idle-conn", sqlite.DefaultMaxIdleConns, "max idle client connections")
 
 	// General settings
-	rootCmd.Flags().DurationP("p", "poll", poll.DefaultPollDuration, "duration between stock quote updates")
-	rootCmd.Flags().String("pprof-addr", "localhost:6060", "pprof host:port")
-	rootCmd.Flags().StringSliceP("s", "symbols", finance.DefaultSymbols, "stock symbols")
+	rootCmd.Flags().DurationP("poll", "p", poll.DefaultPollDuration, "duration between stock quote updates")
+	rootCmd.Flags().String("pprof-addr", ":6060", "pprof host:port")
+	rootCmd.Flags().StringSliceP("symbols", "s", finance.DefaultSymbols, "stock symbols")
+	rootCmd.Flags().BoolP("verbose", "v", true, "verbose logging")
 
 	if err := viper.BindPFlags(rootCmd.Flags()); err != nil {
 		log.Fatalf("binding flags to viper: %s", err)
@@ -119,6 +110,10 @@ func rootPreRun(_ *cobra.Command, _ []string) {
 			},
 		)
 	}
+
+	if !viper.GetBool("verbose") {
+		logLevel = zapcore.InfoLevel
+	}
 }
 
 func rootRun(_ *cobra.Command, _ []string) {
@@ -128,9 +123,9 @@ func rootRun(_ *cobra.Command, _ []string) {
 	ctx, cancel := context.WithCancel(context.Background())
 	zl := zap.New(
 		zapcore.NewCore(
-			zapcore.NewConsoleEncoder(encoderCfg),
+			zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig()),
 			logOutput,
-			zapcore.DebugLevel,
+			logLevel,
 		),
 	).Sugar()
 	defer func() { _ = zl.Sync() }()
@@ -162,6 +157,7 @@ func rootRun(_ *cobra.Command, _ []string) {
 		if err := storage.Close(); err != nil {
 			zl.Errorf("closing archiver: %v", err)
 		}
+		zl.Debug("archiver closed")
 	}()
 
 	var iexMetrics iexcloud.Option

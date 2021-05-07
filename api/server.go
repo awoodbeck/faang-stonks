@@ -52,6 +52,7 @@ func (s *Server) ListenAndServe() error {
 		_ = s.srv.Shutdown(sCtx)
 	}()
 
+	s.log.Infof("Listening on %q", s.srv.Addr)
 	return s.srv.ListenAndServe()
 }
 
@@ -70,6 +71,7 @@ func (s *Server) ListenAndServeTLS(cert, pkey string) error {
 		_ = s.srv.Shutdown(sCtx)
 	}()
 
+	s.log.Infof("Listening on %q (TLS)", s.srv.Addr)
 	return s.srv.ListenAndServeTLS(cert, pkey)
 }
 
@@ -98,6 +100,7 @@ func New(ctx context.Context, p history.Provider, log *zap.SugaredLogger,
 	}
 
 	s.srv = &http.Server{
+		Addr:              s.listenAddr,
 		IdleTimeout:       s.idleTimeout,
 		ReadHeaderTimeout: s.readHeaderTimeout,
 		Handler:           newMux(p, log, s.instrumentation),

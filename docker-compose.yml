@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  stonks:
+    build: .
+    container_name: stonks
+    environment:
+      - STONKS_API_IDLE_TIMEOUT
+      - STONKS_API_LISTEN_ADDR
+      - STONKS_API_METRICS
+      - STONKS_API_READ_HEADERS_TIMEOUT
+      - STONKS_IEX_BATCH_ENDPOINT
+      - STONKS_IEX_CALL_TIMEOUT
+      - STONKS_IEX_METRICS
+      - STONKS_IEX_TOKEN
+      - STONKS_LOG
+      - STONKS_LOG_COMPRESS
+      - STONKS_LOG_LOCALTIME
+      - STONKS_LOG_MAX_AGE
+      - STONKS_LOG_MAX_BACKUPS
+      - STONKS_LOG_MAX_SIZE
+      - STONKS_SQLITE_CONN_MAX_LIFETIME
+      - STONKS_SQLITE_DATABASE
+      - STONKS_SQLITE_MAX_IDLE_CONN
+      - STONKS_POLL
+      - STONKS_PPROF_ADDR
+      - STONKS_SYMBOLS
+    ports:
+      - "6060:6060"
+      - "18081:18081"
+    networks:
+      - fullstack
+
+networks:
+  fullstack:
+    driver: bridge

@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/NYTimes/gziphandler"
 	"github.com/awoodbeck/faang-stonks/history"
@@ -17,7 +18,7 @@ func newMux(provider history.Provider, log *zap.SugaredLogger,
 	log = log.Named("mux")
 
 	r := mux.NewRouter().StrictSlash(true)
-	r.Use(gziphandler.GzipHandler)
+	r.Use(gziphandler.GzipHandler, zapLoggerMiddleware(log))
 
 	if instrument {
 		r.Use(metricsMiddleware)
@@ -41,4 +42,17 @@ func metricsMiddleware(next http.Handler) http.Handler {
 			),
 		),
 	)
+}
+
+func zapLoggerMiddleware(log *zap.SugaredLogger) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(
+			func(w http.ResponseWriter, r *http.Request) {
+				start := time.Now()
+				next.ServeHTTP(w, r)
+				log.Debugf("%s - %s %s (%s)", r.RemoteAddr, r.Method,
+					r.URL.EscapedPath(), time.Since(start))
+			},
+		)
+	}
 }

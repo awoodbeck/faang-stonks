@@ -3,6 +3,7 @@
 package iexcloud
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -73,6 +74,15 @@ func (c Client) GetQuotes(ctx context.Context, symbols ...string) (
 		_, _ = io.Copy(io.Discard, resp.Body)
 		_ = resp.Body.Close()
 	}()
+
+	if resp.StatusCode != http.StatusOK {
+		buf := new(bytes.Buffer)
+		_, err = io.Copy(buf, resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("decoding response: %s", buf)
+	}
 
 	b := make(batchQuotes)
 	err = json.NewDecoder(resp.Body).Decode(&b)
