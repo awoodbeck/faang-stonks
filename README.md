@@ -15,16 +15,9 @@ _No affiliation with, but inspired by
 
 ## Motivation
 
-I want to answer the question, how would I structure a service to meet a set
-of requirements with no mention of scale?
-
-The scale ambiguity adds an interesting aspect to this problem. Should the
-service be able to run on a $5/mo. VPS? Should it run at Google scale? Maybe
-somewhere in between? The code could vary widely depending on the scale.
-
-This project is my attempt to find a happy medium between scalable, agile (the
-code), readable (i.e., not clever to the point of illegible code), secure, and 
-above all, simple.
+This project is my attempt to find a happy medium between scalable, simple, 
+flexible, simple, readable (i.e., not clever to the point of illegible code), 
+secure, and simple. Simple's the hard part.
 
 ## Discussion
 
@@ -43,11 +36,104 @@ You'll find a similar pattern for financial data providers. I define an
 interface the rest of the code consumes, and then add an implementation of
 that interface for my financial data provider (IEX Cloud in this case).
 
-## TODO (aka, it's a work in progress)
+## API Resources
 
-1. Give everything a once-over*
-2. Goto step 1
+The API exposes two endpoints: one for retrieving all stocks and another for
+requesting quotes of a specific stock symbol. The API endpoints are versioned
+with `v1`.
 
-* I worked on this in my free time, which meant I didn't have many consecutive
-  hours dedicated to writing this code. Therefore, I'm sure some stuff escaped
-  my attention with all context switching.
+* GET /v1/stocks
+* GET /v1/stock/[symbol]
+
+All timestamps returned by the API are in UTC.
+
+#### Last N Quotes
+
+Each API endpoint allows for an optional parameter `last` that will direct the 
+API to return the last _n_ quotes, or the maximum observed quotes, whichever
+is less.
+
+### GET /v1/stocks
+
+Example: http://localhost:18081/v1/stocks
+
+Response body:
+```json
+{
+  "aapl": [
+    {
+      "price": 130.4,
+      "symbol": "aapl",
+      "time": "2021-05-07T19:31:07.000000272Z"
+    }
+  ],
+  "amzn": [
+    {
+      "price": 3296.16,
+      "symbol": "amzn",
+      "time": "2021-05-07T19:31:07.000000623Z"
+    }
+  ],
+  "fb": [
+    {
+      "price": 320.125,
+      "symbol": "fb",
+      "time": "2021-05-07T19:31:05.000000929Z"
+    }
+  ],
+  "goog": [
+    {
+      "price": 2402.14,
+      "symbol": "goog",
+      "time": "2021-05-07T19:30:21.000000201Z"
+    }
+  ],
+  "nflx": [
+    {
+      "price": 504.08,
+      "symbol": "nflx",
+      "time": "2021-05-07T19:31:00.000000053Z"
+    }
+  ]
+}
+```
+
+### GET /v1/stock/goog
+
+Example: http://localhost:18081/v1/stock/goog
+
+Response body:
+```json
+[
+  {
+    "price": 2403.06,
+    "symbol": "goog",
+    "time": "2021-05-07T19:32:08.000000511Z"
+  }
+]
+```
+
+### GET /v1/stock/fb?last=3
+
+Example: http://localhost:18081/v1/stock/goog?last=3
+
+Response body:
+```json
+[
+  {
+    "price": 320.12,
+    "symbol": "fb",
+    "time": "2021-05-07T19:36:02.000000631Z"
+  },
+  {
+    "price": 319.92,
+    "symbol": "fb",
+    "time": "2021-05-07T19:35:09.000000338Z"
+  },
+  {
+    "price": 319.99,
+    "symbol": "fb",
+    "time": "2021-05-07T19:34:08.00000012Z"
+  }
+]
+```
