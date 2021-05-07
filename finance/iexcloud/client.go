@@ -16,12 +16,12 @@ import (
 )
 
 const (
-	// defaultBatchEndpoint is the default batchQuotes endpoint for the IEX
+	// DefaultBatchEndpoint is the default batchQuotes endpoint for the IEX
 	// Cloud API.
-	defaultBatchEndpoint = "https://sandbox.iexapis.com/stable/stock/market/batch"
+	DefaultBatchEndpoint = "https://sandbox.iexapis.com/stable/stock/market/batch"
 
-	// defaultTimeout is the default duration the client waits to a response.
-	defaultTimeout = 10 * time.Second
+	// DefaultTimeout is the default duration the client waits to a response.
+	DefaultTimeout = 10 * time.Second
 )
 
 var (
@@ -94,9 +94,9 @@ func New(token string, options ...Option) (*Client, error) {
 	}
 
 	c := &Client{
-		batchEndpoint: defaultBatchEndpoint,
+		batchEndpoint: DefaultBatchEndpoint,
 		httpClient:    http.DefaultClient,
-		timeout:       defaultTimeout,
+		timeout:       DefaultTimeout,
 		token:         token,
 	}
 

@@ -8,7 +8,7 @@ type Option func(*Client)
 // duration.
 func ConnMaxLifetime(d time.Duration) Option {
 	return func(c *Client) {
-		c.maxConnLifetime = d
+		c.connsMaxLifetime = d
 	}
 }
 

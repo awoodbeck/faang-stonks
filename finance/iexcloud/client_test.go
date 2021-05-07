@@ -24,13 +24,13 @@ func TestNewClientDefaults(t *testing.T) {
 		t.Error(err)
 	}
 	if c != nil {
-		if c.batchEndpoint != defaultBatchEndpoint {
+		if c.batchEndpoint != DefaultBatchEndpoint {
 			t.Errorf("expected endpoint: %q; actual endpoint: %q",
-				defaultBatchEndpoint, c.batchEndpoint)
+				DefaultBatchEndpoint, c.batchEndpoint)
 		}
-		if c.timeout != defaultTimeout {
+		if c.timeout != DefaultTimeout {
 			t.Errorf("expected timeout: %v; actual timeout: %v",
-				defaultTimeout, c.timeout)
+				DefaultTimeout, c.timeout)
 		}
 		if c.httpClient == nil {
 			t.Error("nil HTTP client")

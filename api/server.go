@@ -15,6 +15,20 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	// DefaultIdleTimeout represents the duration the server will allow clients
+	// to remain idle.
+	DefaultIdleTimeout = time.Minute
+
+	// DefaultListenAddress is the default host:port on which the API server
+	// will listen for client connections.
+	DefaultListenAddress = ":18081"
+
+	// DefaultReadHeaderTimeout is the default duration during which the API
+	// server will wait for the client to send request headers.
+	DefaultReadHeaderTimeout = 30 * time.Second
+)
+
 // Server is a web server that serves up the REST API for this application.
 // Currently, it allows clients to request the latest stock quotes for a given
 // set of stocks.
@@ -71,9 +85,9 @@ func New(ctx context.Context, p history.Provider, log *zap.SugaredLogger,
 	s := &Server{
 		ctx:               ctx,
 		log:               log.Named("api"),
-		listenAddr:        ":18081",
-		idleTimeout:       time.Minute,
-		readHeaderTimeout: 30 * time.Second,
+		listenAddr:        DefaultListenAddress,
+		idleTimeout:       DefaultIdleTimeout,
+		readHeaderTimeout: DefaultReadHeaderTimeout,
 		instrumentation:   true,
 	}
 

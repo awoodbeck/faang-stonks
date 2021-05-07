@@ -46,7 +46,7 @@ func TestGetQuotes(t *testing.T) {
 
 	t.Logf("using temp directory %q", dir)
 
-	c, err := New(DatabaseFile(filepath.Join(dir, "stonks.sqlite")))
+	c, err := New(DatabaseFile(filepath.Join(dir, DefaultDatabaseFile)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -128,7 +128,7 @@ func TestGetQuotesBatch(t *testing.T) {
 
 	t.Logf("using temp directory %q", dir)
 
-	c, err := New(DatabaseFile(filepath.Join(dir, "stonks.sqlite")))
+	c, err := New(DatabaseFile(filepath.Join(dir, DefaultDatabaseFile)))
 	if err != nil {
 		t.Fatal(err)
 	}

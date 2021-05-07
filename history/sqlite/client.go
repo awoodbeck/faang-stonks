@@ -16,7 +16,16 @@ import (
 )
 
 const (
-	defaultDBFile = "stonks.sqlite"
+	// DefaultConnsMaxLifetime is the default maximum lifetime a client connection
+	// will persist.
+	DefaultConnsMaxLifetime = -1
+
+	// DefaultDatabaseFile is the default database file path.
+	DefaultDatabaseFile = "stonks.sqlite"
+
+	// DefaultMaxIdleConns is the default maximum client connections that can
+	// remain idle.
+	DefaultMaxIdleConns = 2
 
 	// TODO: I can make an argument for and against normalizing the symbols
 	// column. I'll keep it as-is for the purposes of this demo.
@@ -65,11 +74,11 @@ var (
 // Client implements the history.Archiver and history.Provider interfaces,
 // knowing how to store and retrieve stock quotes, respectively.
 type Client struct {
-	db              *sql.DB
-	file            string
-	maxIdleConns    int
-	maxConnLifetime time.Duration
-	symbols         map[string]struct{}
+	db               *sql.DB
+	file             string
+	maxIdleConns     int
+	connsMaxLifetime time.Duration
+	symbols          map[string]struct{}
 }
 
 // initialize the database file.
@@ -249,10 +258,10 @@ func (c Client) SetQuotes(ctx context.Context, quotes []finance.Quote) error {
 //     Symbols            = default symbols from finance package
 func New(options ...Option) (*Client, error) {
 	c := &Client{
-		file:            defaultDBFile,
-		maxConnLifetime: -1,
-		maxIdleConns:    2,
-		symbols:         make(map[string]struct{}),
+		file:             DefaultDatabaseFile,
+		connsMaxLifetime: -1,
+		maxIdleConns:     2,
+		symbols:          make(map[string]struct{}),
 	}
 
 	for _, symbol := range finance.DefaultSymbols {
@@ -267,7 +276,7 @@ func New(options ...Option) (*Client, error) {
 		return nil, err
 	}
 
-	c.db.SetConnMaxLifetime(c.maxConnLifetime)
+	c.db.SetConnMaxLifetime(c.connsMaxLifetime)
 	c.db.SetMaxIdleConns(c.maxIdleConns)
 
 	return c, nil

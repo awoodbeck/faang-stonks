@@ -13,6 +13,9 @@ import (
 	"go.uber.org/zap"
 )
 
+// DefaultPollDuration is the default duration between stock quote updates.
+const DefaultPollDuration = time.Minute
+
 var (
 	ErrNilArchiver = fmt.Errorf("archiver cannot be nil")
 	ErrNilLogger   = fmt.Errorf("logger cannot be nil")
@@ -37,7 +40,7 @@ func (p Poller) Poll(ctx context.Context, interval time.Duration,
 	}
 	if interval <= 0 {
 		p.log.Warn("invalid interval; using default 1 minute")
-		interval = time.Minute
+		interval = DefaultPollDuration
 	}
 
 	t := time.NewTicker(interval)
