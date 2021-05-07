@@ -5,11 +5,18 @@ package poll
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/awoodbeck/faang-stonks/finance"
 	"github.com/awoodbeck/faang-stonks/history"
 	"go.uber.org/zap"
+)
+
+var (
+	ErrNilArchiver = fmt.Errorf("archiver cannot be nil")
+	ErrNilLogger   = fmt.Errorf("logger cannot be nil")
+	ErrNilProvider = fmt.Errorf("finance provider cannot be nil")
 )
 
 // Poller knows how to continually retrieve stock quotes from a
@@ -29,8 +36,8 @@ func (p Poller) Poll(ctx context.Context, interval time.Duration,
 		return
 	}
 	if interval <= 0 {
-		p.log.Warn("invalid interval; using default 1 hour")
-		interval = 60 * time.Minute
+		p.log.Warn("invalid interval; using default 1 minute")
+		interval = time.Minute
 	}
 
 	t := time.NewTicker(interval)
@@ -41,14 +48,18 @@ func (p Poller) Poll(ctx context.Context, interval time.Duration,
 		if err != nil {
 			p.log.Errorf("polling provider: %v", err)
 		} else {
+			p.log.Debugf("received: %#v", quotes)
 			err = p.archiver.SetQuotes(ctx, quotes)
 			if err != nil {
 				p.log.Errorf("updating history: %v", err)
+				continue
 			}
+			p.log.Debug("stored")
 		}
 
 		select {
 		case <-ctx.Done():
+			p.log.Debug("stopping poller")
 			return
 		case <-t.C:
 		}
@@ -59,6 +70,15 @@ func (p Poller) Poll(ctx context.Context, interval time.Duration,
 // returns a pointer to a poller Client.
 func New(p finance.Provider, a history.Archiver, l *zap.SugaredLogger) (
 	*Poller, error) {
+	switch {
+	case p == nil:
+		return nil, ErrNilProvider
+	case a == nil:
+		return nil, ErrNilArchiver
+	case l == nil:
+		return nil, ErrNilLogger
+	}
+
 	return &Poller{
 		log:      l.Named("poll"),
 		archiver: a,

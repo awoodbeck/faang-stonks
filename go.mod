@@ -15,4 +15,5 @@ require (
 	golang.org/x/mod v0.4.2 // indirect
 	golang.org/x/tools v0.1.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
+	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 )

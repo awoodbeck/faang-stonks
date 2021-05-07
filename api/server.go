@@ -60,6 +60,11 @@ func (s *Server) ListenAndServeTLS(cert, pkey string) error {
 }
 
 // New returns a pointer to an API Server.
+//
+// Defaults:
+//     IdleTimeout       = time.Minute
+//     ListenAddress     = ":18081"
+//     ReadHeaderTimeout = 30 * time.Second
 func New(ctx context.Context, p history.Provider, log *zap.SugaredLogger,
 	options ...Option) (
 	*Server, error) {
@@ -73,7 +78,9 @@ func New(ctx context.Context, p history.Provider, log *zap.SugaredLogger,
 	}
 
 	for _, option := range options {
-		option(s)
+		if option != nil {
+			option(s)
+		}
 	}
 
 	s.srv = &http.Server{

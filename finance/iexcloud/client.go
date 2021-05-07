@@ -84,6 +84,10 @@ func (c Client) GetQuotes(ctx context.Context, symbols ...string) (
 }
 
 // New accepts an API endpoint and returns a pointer to a new Client object.
+//
+// Defaults:
+//     BatchEndpoint = "https://sandbox.iexapis.com/stable/stock/market/batch"
+//     CallTimeout   = 10 * time.Second
 func New(token string, options ...Option) (*Client, error) {
 	if token == "" {
 		return nil, ErrInvalidToken
@@ -97,7 +101,9 @@ func New(token string, options ...Option) (*Client, error) {
 	}
 
 	for _, option := range options {
-		option(c)
+		if option != nil {
+			option(c)
+		}
 	}
 
 	if _, err := url.Parse(c.batchEndpoint); err != nil {

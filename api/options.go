@@ -14,14 +14,18 @@ func DisableInstrumentation() Option {
 // IdleTimeout sets the server's IdleTimeout value to the given duration.
 func IdleTimeout(d time.Duration) Option {
 	return func(s *Server) {
-		s.idleTimeout = d
+		if d > 0 {
+			s.idleTimeout = d
+		}
 	}
 }
 
 // ListenAddress specifies the server's listen address.
 func ListenAddress(addr string) Option {
 	return func(s *Server) {
-		s.listenAddr = addr
+		if addr != "" {
+			s.listenAddr = addr
+		}
 	}
 }
 
@@ -29,6 +33,8 @@ func ListenAddress(addr string) Option {
 // duration.
 func ReadHeaderTimeout(d time.Duration) Option {
 	return func(s *Server) {
-		s.readHeaderTimeout = d
+		if d > 0 {
+			s.readHeaderTimeout = d
+		}
 	}
 }

@@ -46,12 +46,9 @@ that interface for my financial data provider (IEX Cloud in this case).
 ## TODO (aka, it's a work in progress)
 
 1. Finish CLI and configuration handling
-2. Lumberjack for log rotation
-3. Pprof endpoint on localhost
-4. Additional tests to cover edge cases
-5. Dockerize it
-6. Give everything a once-over*
-7. Goto step 6
+2. Dockerize it
+3. Give everything a once-over*
+4. Goto step 3
 
 * I worked on this in my free time, which meant I didn't have many consecutive
   hours dedicated to writing this code. Therefore, I'm sure some stuff escaped

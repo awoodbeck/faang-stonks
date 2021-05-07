@@ -241,6 +241,12 @@ func (c Client) SetQuotes(ctx context.Context, quotes []finance.Quote) error {
 }
 
 // New returns a pointer to a new Client object after applying optional settings.
+//
+// Defaults:
+//     ConnMaxLifetime    = -1 (no max lifetime)
+//     DatabaseFile       = "stonks.sqlite"
+//     MaxIdleConnections = 2
+//     Symbols            = default symbols from finance package
 func New(options ...Option) (*Client, error) {
 	c := &Client{
 		file:            defaultDBFile,

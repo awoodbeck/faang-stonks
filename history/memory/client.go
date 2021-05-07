@@ -124,6 +124,9 @@ func (c *Client) SetQuotes(_ context.Context, quotes []finance.Quote) error {
 }
 
 // New returns a pointer to a new Client object after applying optional settings.
+//
+// Defaults:
+//     Symbols = finance package default symbols
 func New(options ...Option) *Client {
 	c := &Client{quotes: make(map[string][]finance.Quote)}
 

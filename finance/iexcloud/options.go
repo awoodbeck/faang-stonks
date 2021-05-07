@@ -14,7 +14,9 @@ type Option func(*Client)
 // requests.
 func BatchEndpoint(url string) Option {
 	return func(c *Client) {
-		c.batchEndpoint = url
+		if url != "" {
+			c.batchEndpoint = url
+		}
 	}
 }
 
@@ -22,7 +24,9 @@ func BatchEndpoint(url string) Option {
 // for each call.
 func CallTimeout(timeout time.Duration) Option {
 	return func(c *Client) {
-		c.timeout = timeout
+		if timeout > 0 {
+			c.timeout = timeout
+		}
 	}
 }
 

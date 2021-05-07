@@ -15,7 +15,9 @@ func ConnMaxLifetime(d time.Duration) Option {
 // DatabaseFile specifies the database file name to use.
 func DatabaseFile(f string) Option {
 	return func(c *Client) {
-		c.file = f
+		if f != "" {
+			c.file = f
+		}
 	}
 }
 
